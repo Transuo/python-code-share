@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python作业分享站</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        body {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .header h1 {
+            color: #2c3e50;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        .login-form {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 50px auto;
+            display: none;
+        }
+        .login-form.active {
+            display: block;
+        }
+        .login-form h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #34495e;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .code-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: none;
+        }
+        .code-container.active {
+            display: block;
+        }
+        .code-toolbar {
+            padding: 10px 20px;
+            background-color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .code-toolbar span {
+            color: white;
+            font-size: 14px;
+        }
+        #codeEditor {
+            width: 100%;
+            min-height: 400px;
+            padding: 20px;
+            border: none;
+            outline: none;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            background-color: #fafafa;
+            white-space: pre-wrap;
+        }
+        #codeEditor[contenteditable="false"] {
+            background-color: #f9f9f9;
+            cursor: default;
+        }
+        .copy-notice {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <h1>Python作业分享站</h1>
+        <button id="loginBtn" class="btn btn-primary">管理员登录</button>
+        <button id="logoutBtn" class="btn btn-danger" style="display: none;">退出登录</button>
+    </div>
+
+    <!-- 登录表单 -->
+    <div id="loginForm" class="login-form">
+        <h2>管理员登录</h2>
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" placeholder="请输入管理员账号">
+        </div>
+        <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" placeholder="请输入管理员密码">
+        </div>
+        <button id="submitLogin" class="btn btn-primary" style="width: 100%;">登录</button>
+    </div>
+
+    <!-- 代码编辑/查看容器 -->
+    <div id="codeContainer" class="code-container active">
+        <div class="code-toolbar">
+            <span>当前作业：Python代码分享</span>
+            <button id="copyBtn" class="btn btn-primary">一键复制代码</button>
+        </div>
+        <div id="codeEditor" contenteditable="false">
+# 请等待管理员上传Python作业代码
+# 管理员登录后可在此编辑代码，其他同学可复制
+
+# 示例格式（管理员可删除并替换）：
+def hello_world():
+    print("Hello, Python!")
+
+# 调用函数
+hello_world()
+        </div>
+    </div>
+
+    <!-- 复制成功提示 -->
+    <div id="copyNotice" class="copy-notice">代码已复制到剪贴板！</div>
+
+    <script>
+        // 核心配置（管理员可修改这里的账号密码）
+        const ADMIN_USER = "Ewigkeit"; // 管理员用户名
+        const ADMIN_PWD = "Mictlan"; // 管理员密码
+
+        // DOM元素获取
+        const loginBtn = document.getElementById("loginBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const loginForm = document.getElementById("loginForm");
+        const submitLogin = document.getElementById("submitLogin");
+        const codeContainer = document.getElementById("codeContainer");
+        const codeEditor = document.getElementById("codeEditor");
+        const copyBtn = document.getElementById("copyBtn");
+        const copyNotice = document.getElementById("copyNotice");
+        const usernameInput = document.getElementById("username");
+        const passwordInput = document.getElementById("password");
+
+        // 页面加载时执行
+        window.onload = function() {
+            // 1. 检查登录状态
+            const isLoggedIn = localStorage.getItem("isAdminLoggedIn") === "true";
+            updatePageByLoginStatus(isLoggedIn);
+
+            // 2. 加载已保存的代码
+            const savedCode = localStorage.getItem("pythonHomeworkCode");
+            if (savedCode) {
+                codeEditor.textContent = savedCode;
+            }
+
+            // 3. 自动保存代码（每3秒保存一次）
+            setInterval(() => {
+                if (isLoggedIn) {
+                    const currentCode = codeEditor.textContent;
+                    localStorage.setItem("pythonHomeworkCode", currentCode);
+                }
+            }, 3000);
+        };
+
+        // 根据登录状态更新页面
+        function updatePageByLoginStatus(isLoggedIn) {
+            if (isLoggedIn) {
+                // 登录状态：显示退出按钮、可编辑代码、隐藏登录按钮和表单
+                loginBtn.style.display = "none";
+                logoutBtn.style.display = "inline-block";
+                loginForm.classList.remove("active");
+                codeContainer.classList.add("active");
+                codeEditor.contentEditable = "true";
+            } else {
+                // 未登录状态：显示登录按钮、只读代码、隐藏退出按钮
+                loginBtn.style.display = "inline-block";
+                logoutBtn.style.display = "none";
+                codeEditor.contentEditable = "false";
+            }
+        }
+
+        // 登录按钮点击事件
+        loginBtn.addEventListener("click", () => {
+            loginForm.classList.add("active");
+            codeContainer.classList.remove("active");
+        });
+
+        // 退出登录按钮点击事件
+        logoutBtn.addEventListener("click", () => {
+            localStorage.setItem("isAdminLoggedIn", "false");
+            updatePageByLoginStatus(false);
+            alert("已退出管理员账号！");
+        });
+
+        // 登录提交事件
+        submitLogin.addEventListener("click", () => {
+            const inputUser = usernameInput.value.trim();
+            const inputPwd = passwordInput.value.trim();
+
+            if (inputUser === ADMIN_USER && inputPwd === ADMIN_PWD) {
+                // 登录成功
+                localStorage.setItem("isAdminLoggedIn", "true");
+                updatePageByLoginStatus(true);
+                usernameInput.value = "";
+                passwordInput.value = "";
+                alert("登录成功！现在可以编辑代码了（代码会自动保存）");
+            } else {
+                // 登录失败
+                alert("用户名或密码错误！请重新输入");
+            }
+        });
+
+        // 一键复制代码事件
+        copyBtn.addEventListener("click", () => {
+            // 选中编辑器内容
+            const range = document.createRange();
+            range.selectNodeContents(codeEditor);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // 复制到剪贴板
+            document.execCommand("copy");
+            selection.removeAllRanges();
+
+            // 显示复制提示
+            copyNotice.style.display = "block";
+            setTimeout(() => {
+                copyNotice.style.display = "none";
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
